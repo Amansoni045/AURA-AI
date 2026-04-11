@@ -1,10 +1,16 @@
 import sys
 import os
+import traceback
 
-# Ensure the root directory is in the path so we can import everything correctly
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# Add the root directory to the path so we can import from backend/
+root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(root_dir)
 
-from backend.main import app
-
-# Vercel needs the 'app' variable to be available at the module level
-# We've imported it from backend.main, so it's ready.
+try:
+    from backend.main import app
+    print("FastAPI app loaded successfully.")
+except Exception as e:
+    print("CRITICAL: Failed to load FastAPI app from backend.main")
+    print(traceback.format_exc())
+    # Re-raise so Vercel knows the function failed to start
+    raise e
