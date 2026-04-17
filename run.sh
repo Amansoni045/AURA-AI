@@ -6,7 +6,7 @@ export PATH="/opt/homebrew/bin:$PATH"
 # Function to kill background processes on exit
 cleanup() {
     echo "Stopping servers..."
-    kill $(jobs -p)
+    kill $(jobs -p) 2>/dev/null
     exit
 }
 
