@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  --color-bg-primary: #0A0A0A;
+  --color-bg-secondary: #000000;
+  --color-bg-surface: #141414;
+  --color-border-main: #262626;
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #888888;
+  --color-aura-purple: #8B5CF6;
+  --color-aura-cyan: #06B6D4;
+  --color-aura-accent: #C084FC;
+
+  --radius-chat: 16px;
+  --radius-btn: 12px;
+}
+
+@layer base {
+  body {
+    @apply bg-bg-primary text-text-primary antialiased selection:bg-aura-purple/30;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/[0.02] backdrop-blur-2xl border border-white/[0.05] shadow-[0_8px_32px_0_rgba(0,0,0,0.36)];
+  }
+
+  .aura-gradient {
+    @apply bg-gradient-to-tr from-aura-purple via-aura-accent to-aura-cyan;
+  }
+
+  .aura-text-gradient {
+    @apply bg-gradient-to-tr from-aura-purple via-aura-accent to-aura-cyan bg-clip-text text-transparent;
+  }
+
+  .sidebar-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-text-secondary transition-all duration-200 hover:bg-white/[0.05] hover:text-text-primary active:scale-[0.98];
+  }
+
+  .sidebar-item.active {
+    @apply bg-white/[0.08] text-text-primary shadow-sm;
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-tr from-aura-purple via-aura-accent to-aura-cyan text-white font-semibold py-2 px-4 rounded-xl hover:opacity-90 transition-all active:scale-[0.98] shadow-[0_0_20px_rgba(139,92,246,0.3)];
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-white/[0.05] rounded-full hover:bg-white/[0.1] transition-colors;
+  }
+}
+
+/* Animations */
+@keyframes pulse-aura {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+.aura-glow {
+  position: relative;
+}
+
+.aura-glow::after {
+  content: '';
+  position: absolute;
+  inset: -20px;
+  background: radial-gradient(circle, var(--color-aura-purple) 0%, transparent 70%);
+  opacity: 0.1;
+  filter: blur(20px);
+  z-index: -1;
+  animation: pulse-aura 4s infinite ease-in-out;
+}

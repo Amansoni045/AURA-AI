@@ -1,53 +1,24 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import List, Optional
-import sys
-import os
+from app.core.config import settings
+from app.api.routes import chat
 
-# Add the project root to sys.path to import ChatModels
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+app = FastAPI(title=settings.PROJECT_NAME)
 
-from ChatModels.chat import get_model
-
-app = FastAPI(title="Generative AI API")
-
-# Enable CORS for the React frontend
+# Set all CORS enabled origins
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, specify the actual origin
+    allow_origins=settings.BACKEND_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-class ChatMessage(BaseModel):
-    role: str
-    content: str
+app.include_router(chat.router, prefix=f"{settings.API_V1_STR}", tags=["chat"])
 
-class ChatRequest(BaseModel):
-    messages: List[ChatMessage]
-
-class ChatResponse(BaseModel):
-    role: str
-    content: str
-
-@app.post("/chat", response_model=ChatResponse)
-async def chat_endpoint(request: ChatRequest):
-    try:
-        model = get_model()
-        # For now, we just pass the last user message
-        # In a real app, we'd pass the whole history to the model
-        user_message = request.messages[-1].content
-        response = model.invoke(user_message)
-        
-        return ChatResponse(role="assistant", content=response.content)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
+@app.get("/")
+async def root():
+    return {"message": "Welcome to AURA-AI API"}
 
 if __name__ == "__main__":
     import uvicorn
