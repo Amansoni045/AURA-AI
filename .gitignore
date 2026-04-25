@@ -34,3 +34,5 @@ patch-import/
 # MacOS
 .DS_Store
 .next/
+
+/src/generated/prisma

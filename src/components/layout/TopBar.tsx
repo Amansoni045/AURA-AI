@@ -12,6 +12,8 @@ const MODELS = [
   { id: 'gemini-1.5-pro', name: 'Aura Pro', icon: <Sparkles size={14} className="text-purple-400" /> },
 ];
 
+
+
 export default function TopBar() {
   const { model, setModel, sidebarCollapsed } = useChatStore();
 

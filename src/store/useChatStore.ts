@@ -32,6 +32,7 @@ interface ChatState {
   addMessage: (chatId: string, message: Omit<Message, 'timestamp'>) => void;
   updateMessage: (chatId: string, messageId: string, content: string) => void;
   renameChat: (id: string, title: string) => void;
+  setConversations: (conversations: Conversation[]) => void;
   setModel: (model: string) => void;
   setStreaming: (isStreaming: boolean) => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
@@ -133,6 +134,7 @@ export const useChatStore = create<ChatState>()(
         }));
       },
 
+      setConversations: (conversations) => set({ conversations }),
       setModel: (model) => set({ model }),
       setStreaming: (isStreaming) => set({ isStreaming }),
       setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),

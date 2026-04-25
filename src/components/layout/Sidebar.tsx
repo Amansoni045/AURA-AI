@@ -6,6 +6,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx } from 'clsx';
 
+import AuthButton from '@/components/auth/AuthButton';
+
 export default function Sidebar() {
   const { conversations, activeId, createChat, deleteChat, setActiveChat, renameChat, sidebarCollapsed, setSidebarCollapsed } = useChatStore();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -112,15 +114,7 @@ export default function Sidebar() {
         </div>
 
         <div className="mt-auto pt-4 border-t border-border-main">
-          <div className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/[0.05] transition-colors cursor-pointer">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-aura-purple to-aura-cyan flex items-center justify-center text-xs font-bold">
-              AS
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <p className="text-sm font-medium truncate">Aman Soni</p>
-              <p className="text-xs text-text-secondary truncate">Free Plan</p>
-            </div>
-          </div>
+          <AuthButton variant="sidebar" />
         </div>
       </div>
       </motion.aside>

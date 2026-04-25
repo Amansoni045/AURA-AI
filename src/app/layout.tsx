@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   description: "A production-grade AI chat experience with high-end polish.",
 };
 
+import SessionWrapper from "@/components/auth/SessionWrapper";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -20,7 +22,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${inter.variable} font-sans antialiased`}>
-        {children}
+        <SessionWrapper>
+          {children}
+        </SessionWrapper>
       </body>
     </html>
   );
