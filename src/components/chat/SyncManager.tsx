@@ -7,7 +7,20 @@ import { getConversations, saveConversation } from "@/app/actions/chat"
 
 export default function SyncManager() {
   const { data: session, status } = useSession()
-  const { conversations, setConversations, activeId } = useChatStore()
+  const { conversations, setConversations, activeId, userId, clearHistory } = useChatStore()
+
+  // Handle identity changes (Logout or Account Switch)
+  useEffect(() => {
+    if (status === "loading") return;
+
+    const currentUserId = session?.user?.id || null;
+    
+    // If we have a stored userId and it doesn't match the current one, wipe everything
+    if (userId !== currentUserId) {
+      clearHistory();
+      // If we just logged in, the next effect will fetch the new chats
+    }
+  }, [session?.user?.id, status, userId, clearHistory])
 
   // Load conversations from server on login
   useEffect(() => {
@@ -28,12 +41,15 @@ export default function SyncManager() {
               timestamp: m.timestamp.getTime(),
             })),
           }))
-          setConversations(formattedChats)
+          setConversations(formattedChats, session.user?.id)
+        } else {
+          // Even if no chats on server, we must mark the store with the new userId
+          setConversations([], session.user?.id)
         }
       }
       fetchChats()
     }
-  }, [status, session?.user?.id])
+  }, [status, session?.user?.id, setConversations])
 
   // Sync current conversation to server on changes
   useEffect(() => {

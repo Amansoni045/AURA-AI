@@ -24,6 +24,7 @@ interface ChatState {
   isStreaming: boolean;
   model: string;
   sidebarCollapsed: boolean;
+  userId: string | null;
   
   // Actions
   createChat: () => void;
@@ -32,10 +33,11 @@ interface ChatState {
   addMessage: (chatId: string, message: Omit<Message, 'timestamp'>) => void;
   updateMessage: (chatId: string, messageId: string, content: string) => void;
   renameChat: (id: string, title: string) => void;
-  setConversations: (conversations: Conversation[]) => void;
+  setConversations: (conversations: Conversation[], userId?: string | null) => void;
   setModel: (model: string) => void;
   setStreaming: (isStreaming: boolean) => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
+  clearHistory: () => void;
 }
 
 export const useChatStore = create<ChatState>()(
@@ -46,6 +48,7 @@ export const useChatStore = create<ChatState>()(
       isStreaming: false,
       model: 'mistral-large-latest',
       sidebarCollapsed: false,
+      userId: null,
 
       createChat: () => {
         set((state) => {
@@ -134,10 +137,11 @@ export const useChatStore = create<ChatState>()(
         }));
       },
 
-      setConversations: (conversations) => set({ conversations }),
+      setConversations: (conversations, userId = null) => set({ conversations, userId }),
       setModel: (model) => set({ model }),
       setStreaming: (isStreaming) => set({ isStreaming }),
       setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
+      clearHistory: () => set({ conversations: [], activeId: null }),
     }),
     {
       name: 'aura-chat-storage',
@@ -146,6 +150,7 @@ export const useChatStore = create<ChatState>()(
         activeId: state.activeId,
         model: state.model,
         sidebarCollapsed: state.sidebarCollapsed,
+        userId: state.userId,
       }),
     }
   )
