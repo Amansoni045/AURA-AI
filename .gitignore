@@ -33,3 +33,4 @@ patch-import/
 
 # MacOS
 .DS_Store
+.next/

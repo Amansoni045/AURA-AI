@@ -16,7 +16,7 @@ class LLMService:
                 base_url="https://api.groq.com/openai/v1",
                 api_key=settings.GROQ_API_KEY
             )
-        
+
         self.openai_client = None
         if settings.OPENAI_API_KEY:
             self.openai_client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)

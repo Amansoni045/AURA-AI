@@ -23,6 +23,7 @@ interface ChatState {
   activeId: string | null;
   isStreaming: boolean;
   model: string;
+  sidebarCollapsed: boolean;
   
   // Actions
   createChat: () => void;
@@ -33,6 +34,7 @@ interface ChatState {
   renameChat: (id: string, title: string) => void;
   setModel: (model: string) => void;
   setStreaming: (isStreaming: boolean) => void;
+  setSidebarCollapsed: (collapsed: boolean) => void;
 }
 
 export const useChatStore = create<ChatState>()(
@@ -42,20 +44,29 @@ export const useChatStore = create<ChatState>()(
       activeId: null,
       isStreaming: false,
       model: 'mistral-large-latest',
+      sidebarCollapsed: false,
 
       createChat: () => {
-        const id = crypto.randomUUID();
-        const newChat: Conversation = {
-          id,
-          title: 'New Chat',
-          messages: [],
-          model: 'mistral-large-latest',
-          updatedAt: Date.now(),
-        };
-        set((state) => ({
-          conversations: [newChat, ...state.conversations],
-          activeId: id,
-        }));
+        set((state) => {
+          const firstChat = state.conversations[0];
+          if (firstChat && firstChat.messages.length === 0) {
+            return { activeId: firstChat.id };
+          }
+
+          const id = crypto.randomUUID();
+          const newChat: Conversation = {
+            id,
+            title: 'New Chat',
+            messages: [],
+            model: state.model,
+            updatedAt: Date.now(),
+          };
+          
+          return {
+            conversations: [newChat, ...state.conversations],
+            activeId: id,
+          };
+        });
       },
 
       deleteChat: (id) => {
@@ -124,6 +135,7 @@ export const useChatStore = create<ChatState>()(
 
       setModel: (model) => set({ model }),
       setStreaming: (isStreaming) => set({ isStreaming }),
+      setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
     }),
     {
       name: 'aura-chat-storage',
@@ -131,6 +143,7 @@ export const useChatStore = create<ChatState>()(
         conversations: state.conversations,
         activeId: state.activeId,
         model: state.model,
+        sidebarCollapsed: state.sidebarCollapsed,
       }),
     }
   )

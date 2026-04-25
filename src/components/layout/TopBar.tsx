@@ -3,6 +3,7 @@
 import { useChatStore } from '@/store/useChatStore';
 import { ChevronDown, Settings, Share2, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { clsx } from 'clsx';
 
 const MODELS = [
   { id: 'mistral-large-latest', name: 'Aura Intellect (Mistral)', icon: <Sparkles size={14} className="text-pink-400" /> },
@@ -12,12 +13,15 @@ const MODELS = [
 ];
 
 export default function TopBar() {
-  const { model, setModel } = useChatStore();
+  const { model, setModel, sidebarCollapsed } = useChatStore();
 
   const currentModel = MODELS.find(m => m.id === model) || MODELS[0];
 
   return (
-    <header className="h-14 border-b border-border-main flex items-center justify-between px-4 bg-bg-primary/80 backdrop-blur-md sticky top-0 z-40">
+    <header className={clsx(
+      "h-14 border-b border-border-main flex items-center justify-between px-4 bg-bg-primary/80 backdrop-blur-md sticky top-0 z-40 transition-all duration-300",
+      sidebarCollapsed ? "pl-14" : "pl-4"
+    )}>
       <div className="flex items-center gap-2">
         <div className="relative group">
           <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-white/[0.05] transition-colors">

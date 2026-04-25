@@ -7,8 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { clsx } from 'clsx';
 
 export default function Sidebar() {
-  const { conversations, activeId, createChat, deleteChat, setActiveChat, renameChat } = useChatStore();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { conversations, activeId, createChat, deleteChat, setActiveChat, renameChat, sidebarCollapsed, setSidebarCollapsed } = useChatStore();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
 
@@ -21,24 +20,25 @@ export default function Sidebar() {
   };
 
   return (
-    <motion.aside
-      initial={false}
-      animate={{ width: isCollapsed ? 0 : 260, opacity: isCollapsed ? 0 : 1 }}
-      className={clsx(
-        "relative h-screen bg-bg-secondary border-r border-border-main flex flex-col transition-all duration-300 ease-in-out",
-        isCollapsed ? "pointer-events-none" : "pointer-events-auto"
-      )}
-    >
-      {/* Toggle Button (Absolute positioned outside when collapsed) */}
+    <>
       <button
-        onClick={() => setIsCollapsed(!isCollapsed)}
+        onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
         className={clsx(
-          "absolute top-4 z-50 p-2 rounded-lg hover:bg-white/[0.05] transition-colors pointer-events-auto",
-          isCollapsed ? "left-4" : "right-4"
+          "fixed top-4 z-[60] p-2 rounded-lg hover:bg-white/[0.05] transition-all duration-300 ease-in-out",
+          sidebarCollapsed ? "left-4" : "left-[212px]"
         )}
       >
-        {isCollapsed ? <PanelLeft size={20} /> : <PanelLeftClose size={20} />}
+        {sidebarCollapsed ? <PanelLeft size={20} /> : <PanelLeftClose size={20} />}
       </button>
+
+      <motion.aside
+        initial={false}
+        animate={{ width: sidebarCollapsed ? 0 : 260 }}
+        className={clsx(
+          "relative h-screen bg-bg-secondary border-r border-border-main flex flex-col transition-all duration-300 ease-in-out overflow-hidden",
+          sidebarCollapsed ? "border-none" : ""
+        )}
+      >
 
       <div className="flex-1 flex flex-col p-4 pt-16 overflow-hidden">
         <button
@@ -123,6 +123,7 @@ export default function Sidebar() {
           </div>
         </div>
       </div>
-    </motion.aside>
+      </motion.aside>
+    </>
   );
 }
