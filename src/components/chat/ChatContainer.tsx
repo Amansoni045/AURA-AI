@@ -66,7 +66,8 @@ export default function ChatContainer() {
       // Ensure we include the new user message but not the empty assistant message
       const messagesToSend = currentMessages.filter(m => m.role === 'user' || m.content !== '');
 
-      const response = await fetch('http://localhost:8000/api/v1/chat', {
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${apiBaseUrl}/api/v1/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
