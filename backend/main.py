@@ -5,11 +5,10 @@ from app.api.routes import chat
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
-# Set all CORS enabled origins
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.BACKEND_CORS_ORIGINS,
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
