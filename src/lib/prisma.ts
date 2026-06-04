@@ -18,13 +18,11 @@ if (databaseUrl.startsWith("file:")) {
 } else {
   // Use libsql for Turso or other remote SQLite
   const { PrismaLibSql } = require("@prisma/adapter-libsql")
-  const { createClient } = require("@libsql/client")
   
-  const client = createClient({
+  adapter = new PrismaLibSql({
     url: databaseUrl,
     authToken: process.env.TURSO_AUTH_TOKEN,
   })
-  adapter = new PrismaLibSql(client)
 }
 
 export const prisma = (globalForPrisma.prisma ?? new PrismaClient({ adapter })) as import("@prisma/client").PrismaClient
