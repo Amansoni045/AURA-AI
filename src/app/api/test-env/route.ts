@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { prisma, databaseUrl } from "@/lib/prisma";
 
 export async function GET() {
   const dbUrl = process.env.DATABASE_URL;
@@ -24,6 +24,7 @@ export async function GET() {
     auth_secret_has_quotes: authSecret.startsWith('"') || authSecret.endsWith('"'),
     has_database_url: !!dbUrl,
     database_url_prefix: dbUrl ? dbUrl.slice(0, 15) : null,
+    prisma_resolved_databaseUrl: databaseUrl,
     has_turso_auth_token: !!process.env.TURSO_AUTH_TOKEN,
     has_auth_google_id: !!googleId,
     google_id_has_quotes: googleId.startsWith('"') || googleId.endsWith('"'),
