@@ -1,5 +1,5 @@
 """
-HuggingFace Embeddings module preserved directly from embeddingModels/huggingFace_embedding.py learning script.
+HuggingFace Embeddings module preserved directly from embeddingModels/huggingFace_embedding.py.
 """
 
 from typing import List

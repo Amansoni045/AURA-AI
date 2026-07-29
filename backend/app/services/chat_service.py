@@ -9,7 +9,7 @@ from app.agents.persona_agent import process_persona_chat
 from app.schemas.chat import ChatRequest, PersonaChatRequest, ChatResponse
 from app.models.groq import get_groq_model
 from app.models.mistral import get_mistral_model
-from app.models.openai_model import get_openai_model
+from app.models.openai import get_openai_model
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, BaseMessage
 
 

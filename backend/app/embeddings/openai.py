@@ -1,5 +1,5 @@
 """
-OpenAI Embeddings module preserved directly from embeddingModels/embeddings.py learning script.
+OpenAI Embeddings module preserved directly from embeddingModels/embeddings.py.
 """
 
 from typing import List
