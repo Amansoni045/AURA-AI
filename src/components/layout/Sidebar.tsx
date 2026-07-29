@@ -1,7 +1,7 @@
 'use client';
 
 import { useChatStore } from '@/store/useChatStore';
-import { Plus, MessageSquare, Trash2, Edit2, PanelLeftClose, PanelLeft } from 'lucide-react';
+import { Plus, MessageSquare, Trash2, Edit2, PanelLeftClose, PanelLeft, FileText, Globe } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx } from 'clsx';
@@ -9,9 +9,23 @@ import { clsx } from 'clsx';
 import AuthButton from '@/components/auth/AuthButton';
 
 export default function Sidebar() {
-  const { conversations, activeId, createChat, deleteChat, setActiveChat, renameChat, sidebarCollapsed, setSidebarCollapsed } = useChatStore();
+  const { 
+    conversations, 
+    activeId, 
+    createChat, 
+    deleteChat, 
+    setActiveChat, 
+    renameChat, 
+    sidebarCollapsed, 
+    setSidebarCollapsed,
+    knowledgeByConversation,
+    clearKnowledgeResources
+  } = useChatStore();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
+
+  const activeConversationId = activeId || 'default-session';
+  const activeResources = knowledgeByConversation[activeConversationId] || [];
 
   const handleRename = (id: string, e: React.FormEvent) => {
     e.preventDefault();
@@ -53,6 +67,7 @@ export default function Sidebar() {
           <span className="text-sm font-medium">New Chat</span>
         </button>
 
+        {/* ── Chat List ── */}
         <div className="flex-1 overflow-y-auto space-y-1 pr-2 custom-scrollbar">
           <AnimatePresence mode="popLayout">
             {conversations.map((chat) => (
@@ -112,6 +127,38 @@ export default function Sidebar() {
             ))}
           </AnimatePresence>
         </div>
+
+        {/* ── Knowledge Workspace Section ── */}
+        {activeResources.length > 0 && (
+          <div className="border-t border-white/[0.06] pt-4 mt-4 max-h-48 flex flex-col">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] uppercase tracking-wider text-text-secondary font-semibold">
+                Knowledge Context ({activeResources.length})
+              </span>
+              <button 
+                onClick={() => clearKnowledgeResources(activeConversationId)}
+                className="text-[10px] text-text-secondary hover:text-red-400 transition-colors"
+              >
+                Clear All
+              </button>
+            </div>
+            <div className="overflow-y-auto space-y-1.5 custom-scrollbar pr-1">
+              {activeResources.map((res) => (
+                <div 
+                  key={res.id} 
+                  className="flex items-center gap-2 px-2.5 py-1.5 bg-white/[0.02] border border-white/[0.04] rounded-lg text-xs text-text-secondary hover:text-white transition-colors"
+                >
+                  {res.type === 'url' ? (
+                    <Globe size={13} className="shrink-0 text-zinc-400" />
+                  ) : (
+                    <FileText size={13} className="shrink-0 text-zinc-400" />
+                  )}
+                  <span className="truncate flex-1">{res.filename}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="mt-auto pt-4 border-t border-border-main">
           <AuthButton variant="sidebar" />

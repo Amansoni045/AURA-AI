@@ -18,6 +18,22 @@ export interface Conversation {
   updatedAt: number;
 }
 
+export interface KnowledgeResource {
+  id: string;
+  conversationId: string;
+  type: 'pdf' | 'txt' | 'md' | 'docx' | 'url' | 'image' | 'audio' | 'video';
+  filename: string;
+  fileSize?: string;
+  url?: string;
+  status: 'uploading' | 'processing' | 'chunking' | 'generating_embeddings' | 'indexing' | 'ready' | 'failed' | 'queued';
+  progress: number;
+  stageText: string;
+  error?: string;
+  uploadTime: number;
+  totalChunks?: number;
+  totalPages?: number;
+}
+
 interface ChatState {
   conversations: Conversation[];
   activeId: string | null;
@@ -25,6 +41,9 @@ interface ChatState {
   model: string;
   sidebarCollapsed: boolean;
   userId: string | null;
+  
+  // Knowledge Workspace States (Mapped per conversationId)
+  knowledgeByConversation: Record<string, KnowledgeResource[]>;
   
   // Actions
   createChat: () => void;
@@ -38,6 +57,13 @@ interface ChatState {
   setStreaming: (isStreaming: boolean) => void;
   setSidebarCollapsed: (collapsed: boolean) => void;
   clearHistory: () => void;
+  
+  // Knowledge Workspace Actions
+  addKnowledgeResource: (conversationId: string, resource: KnowledgeResource) => void;
+  updateKnowledgeResource: (conversationId: string, resourceId: string, updates: Partial<KnowledgeResource>) => void;
+  removeKnowledgeResource: (conversationId: string, resourceId: string) => void;
+  renameKnowledgeResource: (conversationId: string, resourceId: string, newName: string) => void;
+  clearKnowledgeResources: (conversationId: string) => void;
 }
 
 export const useChatStore = create<ChatState>()(
@@ -49,6 +75,9 @@ export const useChatStore = create<ChatState>()(
       model: 'mistral-large-latest',
       sidebarCollapsed: false,
       userId: null,
+      
+      // Knowledge state map
+      knowledgeByConversation: {},
 
       createChat: () => {
         set((state) => {
@@ -79,9 +108,14 @@ export const useChatStore = create<ChatState>()(
           const nextActiveId = state.activeId === id 
             ? (newConversations[0]?.id || null) 
             : state.activeId;
+            
+          const updatedKnowledge = { ...state.knowledgeByConversation };
+          delete updatedKnowledge[id];
+
           return {
             conversations: newConversations,
             activeId: nextActiveId,
+            knowledgeByConversation: updatedKnowledge,
           };
         });
       },
@@ -141,7 +175,79 @@ export const useChatStore = create<ChatState>()(
       setModel: (model) => set({ model }),
       setStreaming: (isStreaming) => set({ isStreaming }),
       setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
-      clearHistory: () => set({ conversations: [], activeId: null }),
+      clearHistory: () => set({ conversations: [], activeId: null, knowledgeByConversation: {} }),
+
+      // ── Knowledge Workspace Action Implementations ──
+      addKnowledgeResource: (conversationId, resource) => {
+        set((state) => {
+          const list = state.knowledgeByConversation[conversationId] || [];
+          const exists = list.some((r) => r.id === resource.id || r.filename === resource.filename);
+          
+          const updatedList = exists
+            ? list.map((r) => (r.filename === resource.filename ? { ...r, ...resource } : r))
+            : [...list, resource];
+
+          return {
+            knowledgeByConversation: {
+              ...state.knowledgeByConversation,
+              [conversationId]: updatedList,
+            },
+          };
+        });
+      },
+
+      updateKnowledgeResource: (conversationId, resourceId, updates) => {
+        set((state) => {
+          const list = state.knowledgeByConversation[conversationId] || [];
+          const updatedList = list.map((r) => (r.id === resourceId ? { ...r, ...updates } : r));
+
+          return {
+            knowledgeByConversation: {
+              ...state.knowledgeByConversation,
+              [conversationId]: updatedList,
+            },
+          };
+        });
+      },
+
+      removeKnowledgeResource: (conversationId, resourceId) => {
+        set((state) => {
+          const list = state.knowledgeByConversation[conversationId] || [];
+          const updatedList = list.filter((r) => r.id !== resourceId);
+
+          return {
+            knowledgeByConversation: {
+              ...state.knowledgeByConversation,
+              [conversationId]: updatedList,
+            },
+          };
+        });
+      },
+
+      renameKnowledgeResource: (conversationId, resourceId, newName) => {
+        set((state) => {
+          const list = state.knowledgeByConversation[conversationId] || [];
+          const updatedList = list.map((r) => (r.id === resourceId ? { ...r, filename: newName } : r));
+
+          return {
+            knowledgeByConversation: {
+              ...state.knowledgeByConversation,
+              [conversationId]: updatedList,
+            },
+          };
+        });
+      },
+
+      clearKnowledgeResources: (conversationId) => {
+        set((state) => {
+          const updatedMap = { ...state.knowledgeByConversation };
+          delete updatedMap[conversationId];
+
+          return {
+            knowledgeByConversation: updatedMap,
+          };
+        });
+      },
     }),
     {
       name: 'aura-chat-storage',
@@ -151,6 +257,7 @@ export const useChatStore = create<ChatState>()(
         model: state.model,
         sidebarCollapsed: state.sidebarCollapsed,
         userId: state.userId,
+        knowledgeByConversation: state.knowledgeByConversation,
       }),
     }
   )

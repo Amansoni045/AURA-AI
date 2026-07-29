@@ -10,6 +10,7 @@ from app.schemas.chat import ChatRequest, PersonaChatRequest, ChatResponse
 from app.models.groq import get_groq_model
 from app.models.mistral import get_mistral_model
 from app.models.openai import get_openai_model
+from app.services.router_service import RouterService
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, BaseMessage
 
 
@@ -47,8 +48,21 @@ class ChatService:
             elif msg.role == "system":
                 langchain_messages.append(SystemMessage(content=msg.content))
 
+        # Retrieve user's latest query text
+        last_user_msg = ""
+        for msg in reversed(request.messages):
+            if msg.role == "user":
+                last_user_msg = msg.content
+                break
+
+        # Process routing dynamically via RouterService (including on-the-fly URL crawling)
+        routed_messages = RouterService.process_and_route_messages(
+            messages=langchain_messages,
+            latest_user_message=last_user_msg,
+        )
+
         try:
-            async for chunk in llm.astream(langchain_messages):
+            async for chunk in llm.astream(routed_messages):
                 content = str(chunk.content)
                 if content:
                     yield f"data: {json.dumps({'content': content})}\n\n"

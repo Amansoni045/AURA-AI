@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.routes import chat, extractor
+from app.routes import chat, extractor, rag
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -21,6 +21,7 @@ app.add_middleware(
 # Register active modular routers
 app.include_router(chat.router)
 app.include_router(extractor.router)
+app.include_router(rag.router)
 
 
 @app.get("/health", tags=["Health"])
