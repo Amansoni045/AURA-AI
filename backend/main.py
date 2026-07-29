@@ -1,38 +1,41 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import List, Optional
+from app.core.config import settings
+from app.routes import chat, extractor, rag
 
-from app.persona_chatbot import get_initial_messages, generate_response
-from app.movie_extractor import extract_movie_info, Movie
-from langchain_mistralai import ChatMistralAI
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version=settings.VERSION,
+    description="AURA AI Production-grade FastAPI Backend wrapping LangChain core modules.",
+)
 
-app = FastAPI(title="AURA-AI API")
-model = ChatMistralAI(model="open-mistral-7b")
-
+# Configure CORS middleware for Next.js frontend communication
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=False,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-class ChatRequest(BaseModel):
-    choice: int
-    user_input: str
+# Register modular routers
+app.include_router(chat.router)
+app.include_router(extractor.router)
+app.include_router(rag.router)
 
-class ExtractionRequest(BaseModel):
-    paragraph: str
 
-@app.post("/api/persona-chat")
-def persona_chat(req: ChatRequest):
-    messages = get_initial_messages(req.choice)
-    reply = generate_response(model, messages, req.user_input)
-    return {"response": reply}
+@app.get("/health", tags=["Health"])
+def health_check():
+    """
+    Health check endpoint for API monitoring.
+    """
+    return {
+        "status": "healthy",
+        "service": settings.PROJECT_NAME,
+        "version": settings.VERSION,
+    }
 
-@app.post("/api/extract-movie", response_model=Movie)
-def extract_movie(req: ExtractionRequest):
-    if not req.paragraph.strip():
-        raise HTTPException(status_code=400, detail="Paragraph required")
-    return extract_movie_info(req.paragraph)
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
