@@ -7,3 +7,6 @@ openai
 google-generativeai
 slowapi
 python-multipart
+langchain
+langchain-core
+langchain-mistralai
