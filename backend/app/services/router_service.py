@@ -7,7 +7,7 @@ and routes queries between normal chat, RAG, and extraction pipelines automatica
 import re
 from typing import List
 from app.loaders.web import load_web_url
-from app.vectorstores.chroma import get_chroma_store
+from app.vectorstores.chroma import get_chroma_store, has_chroma_documents
 from langchain_core.messages import SystemMessage, BaseMessage
 
 
@@ -47,17 +47,20 @@ class RouterService:
             except Exception as e:
                 print(f"On-the-fly web crawl failed for {detected_urls}: {e}")
 
-        # 2. Retrieve document context
+        # 2. Retrieve document context (only if documents exist and message is not a simple greeting)
         context = ""
-        if latest_user_message:
-            try:
-                vectorstore = get_chroma_store()
-                # Run similarity search matching k=4
-                retrieved_docs = vectorstore.similarity_search(latest_user_message, k=4)
-                if retrieved_docs:
-                    context = "\n\n---\n\n".join([doc.page_content for doc in retrieved_docs])
-            except Exception:
-                pass
+        if latest_user_message and has_chroma_documents():
+            clean_msg = latest_user_message.strip().lower()
+            greetings = {"hii", "hi", "hello", "hey", "hola", "thanks", "thank you", "who are you"}
+            if len(clean_msg) > 3 and clean_msg not in greetings:
+                try:
+                    vectorstore = get_chroma_store()
+                    # Run similarity search matching k=4
+                    retrieved_docs = vectorstore.similarity_search(latest_user_message, k=4)
+                    if retrieved_docs:
+                        context = "\n\n---\n\n".join([doc.page_content for doc in retrieved_docs])
+                except Exception:
+                    pass
 
         # 3. Inject correct prompts automatically
         routed_messages = list(messages)

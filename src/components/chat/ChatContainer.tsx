@@ -67,20 +67,38 @@ export default function ChatContainer() {
       const messagesToSend = currentMessages.filter(m => m.role === 'user' || m.content !== '');
 
       const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-      const response = await fetch(`${apiBaseUrl}/api/v1/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: messagesToSend,
-          model: model,
-          stream: true
-        }),
-        signal: controller.signal
-      });
+      let response: Response | null = null;
+      let retries = 0;
+      const maxRetries = 2;
 
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.detail || 'Failed to fetch from backend');
+      while (retries <= maxRetries) {
+        try {
+          response = await fetch(`${apiBaseUrl}/api/v1/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              messages: messagesToSend,
+              model: model,
+              stream: true
+            }),
+            signal: controller.signal
+          });
+          if (response.ok) break;
+        } catch (fetchErr: any) {
+          if (fetchErr.name === 'AbortError') throw fetchErr;
+          if (retries < maxRetries) {
+            retries++;
+            updateMessage(currentId, assistantMsgId, "⚡ Server is waking up from sleep, retrying connection...");
+            await new Promise((r) => setTimeout(r, 3000));
+            continue;
+          }
+          throw fetchErr;
+        }
+      }
+
+      if (!response || !response.ok) {
+        const errData = await response?.json().catch(() => ({}));
+        throw new Error(errData?.detail || 'Failed to fetch from backend');
       }
 
       const reader = response.body?.getReader();
