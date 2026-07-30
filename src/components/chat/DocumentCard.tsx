@@ -3,15 +3,15 @@
 import { FileText, Globe, Loader2, CheckCircle2, AlertTriangle, RefreshCw, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { clsx } from 'clsx';
-import { DocumentItem, useChatStore } from '@/store/useChatStore';
+import { KnowledgeResource, useChatStore } from '@/store/useChatStore';
 
 interface DocumentCardProps {
-  document: DocumentItem;
-  onRetry?: (doc: DocumentItem) => void;
+  document: KnowledgeResource;
+  onRetry?: (doc: KnowledgeResource) => void;
 }
 
 export default function DocumentCard({ document, onRetry }: DocumentCardProps) {
-  const { removeDocumentItem } = useChatStore();
+  const { removeKnowledgeResource } = useChatStore();
 
   const isPdf = document.filename.toLowerCase().endsWith('.pdf');
   const isWeb = document.filename.startsWith('http://') || document.filename.startsWith('https://');
@@ -51,7 +51,7 @@ export default function DocumentCard({ document, onRetry }: DocumentCardProps) {
 
         {/* Close / Remove button */}
         <button
-          onClick={() => removeDocumentItem(document.id)}
+          onClick={() => removeKnowledgeResource(document.conversationId, document.id)}
           className="text-white/40 hover:text-white transition-colors p-1 rounded-full hover:bg-white/10"
           title="Remove document"
         >
