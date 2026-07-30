@@ -3,16 +3,21 @@ HuggingFace Embeddings module preserved directly from embeddingModels/huggingFac
 """
 
 from typing import List
-from langchain_huggingface import HuggingFaceEmbeddings
+
+_embedding_instance = None
 
 
 def get_huggingface_embeddings(
     model_name: str = "BAAI/bge-small-en-v1.5",
-) -> HuggingFaceEmbeddings:
+):
     """
-    Initializes and returns HuggingFaceEmbeddings instance.
+    Initializes and returns HuggingFaceEmbeddings instance lazily.
     """
-    return HuggingFaceEmbeddings(model_name=model_name)
+    global _embedding_instance
+    if _embedding_instance is None:
+        from langchain_huggingface import HuggingFaceEmbeddings
+        _embedding_instance = HuggingFaceEmbeddings(model_name=model_name)
+    return _embedding_instance
 
 
 def embed_texts_huggingface(texts: List[str]) -> List[List[float]]:

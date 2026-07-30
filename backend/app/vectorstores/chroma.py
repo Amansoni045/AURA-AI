@@ -4,8 +4,6 @@ Chroma Vector Database integration preserved from vectorStore/db.py and ui/rag_e
 
 import os
 from pathlib import Path
-from langchain_chroma import Chroma
-from app.embeddings.huggingface import get_huggingface_embeddings
 
 # Define root database path
 BACKEND_ROOT = Path(__file__).parent.parent.parent
@@ -24,10 +22,13 @@ def get_existing_chroma_path() -> str:
     return CHROMA_DB_DIR
 
 
-def get_chroma_store(persist_dir: str = None) -> Chroma:
+def get_chroma_store(persist_dir: str = None):
     """
-    Initializes and returns the Chroma VectorStore wrapper instance.
+    Initializes and returns the Chroma VectorStore wrapper instance lazily.
     """
+    from langchain_chroma import Chroma
+    from app.embeddings.huggingface import get_huggingface_embeddings
+
     target_dir = persist_dir or get_existing_chroma_path()
     embedding_model = get_huggingface_embeddings()
     return Chroma(
