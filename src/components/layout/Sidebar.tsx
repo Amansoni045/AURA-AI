@@ -12,6 +12,7 @@ export default function Sidebar() {
   const { 
     conversations, 
     activeId, 
+    userId,
     createChat, 
     deleteChat, 
     setActiveChat, 
@@ -69,63 +70,72 @@ export default function Sidebar() {
 
         {/* ── Chat List ── */}
         <div className="flex-1 overflow-y-auto space-y-1 pr-2 custom-scrollbar">
-          <AnimatePresence mode="popLayout">
-            {conversations.map((chat) => (
-              <motion.div
-                key={chat.id}
-                layout
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className={clsx(
-                  "group relative flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all",
-                  activeId === chat.id ? "bg-white/[0.08] text-white" : "text-text-secondary hover:bg-white/[0.04] hover:text-white"
-                )}
-                onClick={() => setActiveChat(chat.id)}
-              >
-                <MessageSquare size={16} className="shrink-0" />
-                
-                {editingId === chat.id ? (
-                  <form onSubmit={(e) => handleRename(chat.id, e)} className="flex-1">
-                    <input
-                      autoFocus
-                      value={editTitle}
-                      onChange={(e) => setEditTitle(e.target.value)}
-                      onBlur={() => setEditingId(null)}
-                      className="w-full bg-transparent border-none outline-none text-sm p-0"
-                    />
-                  </form>
-                ) : (
-                  <span className="flex-1 truncate text-sm">{chat.title}</span>
-                )}
+          {userId ? (
+            <AnimatePresence mode="popLayout">
+              {conversations.map((chat) => (
+                <motion.div
+                  key={chat.id}
+                  layout
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className={clsx(
+                    "group relative flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all",
+                    activeId === chat.id ? "bg-white/[0.08] text-white" : "text-text-secondary hover:bg-white/[0.04] hover:text-white"
+                  )}
+                  onClick={() => setActiveChat(chat.id)}
+                >
+                  <MessageSquare size={16} className="shrink-0" />
+                  
+                  {editingId === chat.id ? (
+                    <form onSubmit={(e) => handleRename(chat.id, e)} className="flex-1">
+                      <input
+                        autoFocus
+                        value={editTitle}
+                        onChange={(e) => setEditTitle(e.target.value)}
+                        onBlur={() => setEditingId(null)}
+                        className="w-full bg-transparent border-none outline-none text-sm p-0"
+                      />
+                    </form>
+                  ) : (
+                    <span className="flex-1 truncate text-sm">{chat.title}</span>
+                  )}
 
-                <div className={clsx(
-                  "hidden group-hover:flex items-center gap-1",
-                  activeId === chat.id ? "flex" : ""
-                )}>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingId(chat.id);
-                      setEditTitle(chat.title);
-                    }}
-                    className="p-1 rounded-md hover:bg-white/[0.1] text-text-secondary hover:text-white transition-colors"
-                  >
-                    <Edit2 size={12} />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteChat(chat.id);
-                    }}
-                    className="p-1 rounded-md hover:bg-red-500/20 text-text-secondary hover:text-red-400 transition-colors"
-                  >
-                    <Trash2 size={12} />
-                  </button>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+                  <div className={clsx(
+                    "hidden group-hover:flex items-center gap-1",
+                    activeId === chat.id ? "flex" : ""
+                  )}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingId(chat.id);
+                        setEditTitle(chat.title);
+                      }}
+                      className="p-1 rounded-md hover:bg-white/[0.1] text-text-secondary hover:text-white transition-colors"
+                    >
+                      <Edit2 size={12} />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteChat(chat.id);
+                      }}
+                      className="p-1 rounded-md hover:bg-red-500/20 text-text-secondary hover:text-red-400 transition-colors"
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          ) : (
+            <div className="text-xs text-text-secondary/50 p-4 text-center space-y-2">
+              <p>Temporary Session</p>
+              <p className="text-[11px] leading-relaxed text-text-secondary/40">
+                Sign in to save and access your conversation history across devices.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* ── Knowledge Workspace Section ── */}

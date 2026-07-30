@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 export type Role = 'user' | 'assistant';
 
@@ -81,9 +81,9 @@ export const useChatStore = create<ChatState>()(
 
       createChat: () => {
         set((state) => {
-          const firstChat = state.conversations[0];
-          if (firstChat && firstChat.messages.length === 0) {
-            return { activeId: firstChat.id };
+          const activeChat = state.conversations.find((c) => c.id === state.activeId);
+          if (activeChat && activeChat.messages.length === 0) {
+            return { activeId: activeChat.id };
           }
 
           const id = crypto.randomUUID();
@@ -96,7 +96,7 @@ export const useChatStore = create<ChatState>()(
           };
           
           return {
-            conversations: [newChat, ...state.conversations],
+            conversations: state.userId ? [newChat, ...state.conversations] : [newChat],
             activeId: id,
           };
         });
@@ -251,6 +251,7 @@ export const useChatStore = create<ChatState>()(
     }),
     {
       name: 'aura-chat-storage',
+      storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({
         conversations: state.conversations,
         activeId: state.activeId,
