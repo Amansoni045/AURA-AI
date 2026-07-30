@@ -3,8 +3,6 @@ PDF Loader module preserved from documentLoaders/pdf.py and ui/ingest.py.
 """
 
 from typing import List
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
 
 
@@ -16,6 +14,9 @@ def load_pdf_document(
     """
     Loads a PDF file and splits it into chunked documents.
     """
+    from langchain_community.document_loaders import PyPDFLoader
+    from langchain_text_splitters import RecursiveCharacterTextSplitter
+
     loader = PyPDFLoader(file_path)
     pages = loader.load()
 
@@ -35,3 +36,4 @@ def load_pdf_document(
             cleaned_chunks.append(chunk)
 
     return cleaned_chunks
+

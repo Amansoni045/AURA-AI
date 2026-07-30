@@ -6,9 +6,7 @@ Downloads webpage, extracts clean readable content, removes scripts, ads, footer
 from typing import List
 import urllib.request
 import re
-from bs4 import BeautifulSoup
 from langchain_core.documents import Document
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 
 def extract_clean_text_from_html(html_content: str) -> str:
@@ -16,6 +14,7 @@ def extract_clean_text_from_html(html_content: str) -> str:
     Strips scripts, styles, advertisements, headers, and footers from HTML,
     returning clean readable text content.
     """
+    from bs4 import BeautifulSoup
     soup = BeautifulSoup(html_content, "html.parser")
 
     # Remove non-content tags
@@ -38,6 +37,8 @@ def load_web_url(
     """
     Fetches URL content, cleans the HTML, and returns chunked documents.
     """
+    from langchain_text_splitters import RecursiveCharacterTextSplitter
+
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
     req = urllib.request.Request(url, headers=headers)
     
@@ -57,3 +58,4 @@ def load_web_url(
         separators=["\n\n", "\n", " ", ""],
     )
     return splitter.split_documents([doc])
+

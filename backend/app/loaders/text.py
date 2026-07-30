@@ -4,8 +4,6 @@ Text, Markdown, and DOCX Document Loader.
 
 from typing import List
 from pathlib import Path
-from langchain_community.document_loaders import TextLoader
-from langchain_text_splitters import CharacterTextSplitter
 from langchain_core.documents import Document
 
 
@@ -17,6 +15,9 @@ def load_text_document(
     """
     Loads a text, markdown, or docx file and splits it into chunked documents.
     """
+    from langchain_community.document_loaders import TextLoader
+    from langchain_text_splitters import CharacterTextSplitter
+
     suffix = Path(file_path).suffix.lower()
 
     if suffix == ".docx":
@@ -47,3 +48,4 @@ def load_text_document(
             cleaned_chunks.append(chunk)
 
     return cleaned_chunks
+

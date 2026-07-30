@@ -3,6 +3,7 @@ Ingestion Service — Handles document parsing, chunking, embedding, and vector 
 """
 
 import os
+import gc
 import tempfile
 from pathlib import Path
 from typing import List
@@ -12,6 +13,8 @@ from app.loaders.text import load_text_document
 from app.loaders.web import load_web_url
 from app.vectorstores.chroma import get_chroma_store
 from app.schemas.rag import UploadResponse
+
+BATCH_SIZE = 40
 
 
 def format_file_size(size_bytes: int) -> str:
@@ -38,9 +41,10 @@ class IngestionService:
         persist_dir: str = None,
     ) -> UploadResponse:
         """
-        Ingests uploaded document bytes (PDF or Text), splits, and persists to Chroma.
+        Ingests uploaded document bytes (PDF or Text), splits, and persists to Chroma in batches.
         """
         size_str = format_file_size(len(file_bytes))
+        tmp_path = None
         try:
             suffix = Path(filename).suffix.lower()
             with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
@@ -55,25 +59,28 @@ class IngestionService:
                 chunks = load_text_document(tmp_path)
                 total_pages = 1
 
+            total_chunks = len(chunks)
+
             # Step 2: Tag metadata source file
             for chunk in chunks:
                 chunk.metadata["source_file"] = filename
 
-            # Step 3: Embeddings & VectorStore Persistence
+            # Step 3: Embeddings & VectorStore Persistence (Batched to prevent RAM spikes)
             vectorstore = get_chroma_store(persist_dir)
-            vectorstore.add_documents(chunks)
+            for i in range(0, total_chunks, BATCH_SIZE):
+                batch = chunks[i : i + BATCH_SIZE]
+                vectorstore.add_documents(batch)
+                del batch
 
-            try:
-                os.unlink(tmp_path)
-            except Exception:
-                pass
+            del chunks
+            gc.collect()
 
             return UploadResponse(
                 success=True,
                 status="ready",
                 stage="ready",
                 total_pages=total_pages,
-                total_chunks=len(chunks),
+                total_chunks=total_chunks,
                 filename=filename,
                 file_size=size_str,
                 error=None,
@@ -88,27 +95,41 @@ class IngestionService:
                 file_size=size_str,
                 error=f"Ingestion failed: {str(e)}",
             )
+        finally:
+            if tmp_path and os.path.exists(tmp_path):
+                try:
+                    os.unlink(tmp_path)
+                except Exception:
+                    pass
+            gc.collect()
 
     @staticmethod
     def ingest_url(url: str, persist_dir: str = None) -> UploadResponse:
         """
-        Ingests web URL page contents, splits, and persists to Chroma.
+        Ingests web URL page contents, splits, and persists to Chroma in batches.
         """
         try:
             chunks = load_web_url(url)
+            total_chunks = len(chunks)
 
             for chunk in chunks:
                 chunk.metadata["source_file"] = url
 
             vectorstore = get_chroma_store(persist_dir)
-            vectorstore.add_documents(chunks)
+            for i in range(0, total_chunks, BATCH_SIZE):
+                batch = chunks[i : i + BATCH_SIZE]
+                vectorstore.add_documents(batch)
+                del batch
+
+            del chunks
+            gc.collect()
 
             return UploadResponse(
                 success=True,
                 status="ready",
                 stage="ready",
                 total_pages=1,
-                total_chunks=len(chunks),
+                total_chunks=total_chunks,
                 filename=url,
                 file_size="Web Page",
                 error=None,
@@ -122,3 +143,6 @@ class IngestionService:
                 file_size="Web Page",
                 error=f"Web URL ingestion failed: {str(e)}",
             )
+        finally:
+            gc.collect()
+
